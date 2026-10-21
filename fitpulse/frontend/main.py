@@ -108,6 +108,9 @@ async def _get_card(client: httpx.AsyncClient) -> AgentCard:
         # Agent Runtime does not serve a public card URL, so point the client at
         # the passthrough base for message sends.
         card.url = A2A_BASE
+        if card.additional_interfaces:
+            for iface in card.additional_interfaces:
+                iface.url = A2A_BASE
         _card = card
     return _card
 
