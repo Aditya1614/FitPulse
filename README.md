@@ -1,198 +1,91 @@
-<div align="center">
+# 🏋️‍♂️ FitPulse - AI Personal Fitness & Workout Coach
 
-<img src="assets/build-with-gemini-banner.png" alt="Build with Gemini" width="100%" />
-
-# 🚀 Build with Gemini · Track 3
-
-### The starter kit for Track 3 of the Build with Gemini World Tour, and a showcase of what participants built with it.
-
-Clone this repo, open [Antigravity](https://antigravity.google), and build your own agent-first app on Google Cloud. Every project in the [gallery below](#-featured-projects) was built the same way: prototyped with Antigravity and `agents-cli`, equipped with Memory, tools, and storage, deployed to Agent Platform, and given a face on Cloud Run.
-
-<br/>
-
-![Build with Gemini](https://img.shields.io/badge/Build%20with%20Gemini-World%20Tour-4285F4?logo=google&logoColor=white)
-![Track 3](https://img.shields.io/badge/Track%203-Agent--First%20Apps-EA4335)
-![Google Cloud](https://img.shields.io/badge/Google%20Cloud-Agent%20Platform-4285F4?logo=googlecloud&logoColor=white)
-![Built with ADK](https://img.shields.io/badge/Built%20with-ADK%20%2B%20agents--cli-34A853)
-![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)
-![Projects](https://img.shields.io/badge/Projects-8-blue)
-
-<sub>📖 <a href="https://cszhu.github.io/build-with-gemini/">Lab Guide</a> · 🛠️ <a href="https://google.github.io/agents-cli/guide/getting-started/">agents-cli</a> · 🤖 <a href="https://google.github.io/adk-docs/">ADK</a></sub>
-
-</div>
+FitPulse is an intelligent, agent-first fitness and nutrition coach built on Google Cloud's Agent Platform and Vertex AI. It helps athletes and fitness enthusiasts discover exercises, calculate strength targets, plan workouts, track training logs, estimate nutritional needs, and generate instructional form visuals and demonstration videos.
 
 ---
 
-## 📚 Table of Contents
+## 🌟 Implemented Features & Google Cloud Integrations
 
-- [🧩 Anatomy of a Track 3 Project](#-anatomy-of-a-track-3-project)
-- [📂 Featured Projects](#-featured-projects)
-  - [🛍️ Commerce & Marketplace Agents](#️-commerce--marketplace-agents)
-  - [🍳 Food & Recipe Agents](#-food--recipe-agents)
-  - [✈️ Travel & Local Agents](#️-travel--local-agents)
-  - [💪 Health, Fitness & Wellness Agents](#-health-fitness--wellness-agents)
-  - [📚 Learning & Knowledge Agents](#-learning--knowledge-agents)
-  - [🎨 Creative & Media Agents](#-creative--media-agents)
-  - [🏢 Productivity & Enterprise Agents](#-productivity--enterprise-agents)
-  - [🧪 Experimental & Other](#-experimental--other)
-- [🧠 What's in this Repo](#-whats-in-this-repo)
-- [🧰 Build Your Own](#-build-your-own)
-- [📚 Resources](#-resources)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
+FitPulse is built with the Google Agent Development Kit (ADK) and directly connects to the following Google Cloud services and tools:
 
----
-
-## 🧩 Anatomy of a Track 3 Project
-
-Every app in this collection is built from the same set of Google Cloud building blocks introduced in the lab. Once you understand this shape, you can read any project here at a glance:
-
-| Layer | What it does | Powered by |
+| Feature / Integration | Description | Powered By |
 |---|---|---|
-| 🤖 **The Agent** | The core reasoning loop | [ADK](https://google.github.io/adk-docs/) + [`agents-cli`](https://google.github.io/agents-cli/guide/getting-started/), scaffolded with [Antigravity](https://antigravity.google) |
-| 🧠 **Memory** | Remembers facts across sessions | [Agent Platform Memory Bank](https://docs.cloud.google.com/gemini-enterprise-agent-platform/scale/memory-bank) |
-| 🗄️ **Structured data** | Inventory, records, lists | [Firestore](https://console.cloud.google.com/firestore) |
-| 🖼️ **Files & blobs** | Images, media, assets | [Cloud Storage](https://console.cloud.google.com/storage) |
-| 🔧 **Tools** | Take real actions and fetch real data | ADK function tools |
-| 🎨 **Media generation** | Creates images (and video) on demand | `gemini-3.1-flash-lite-image` (Nano Banana 2 Lite) · Omni (video) |
-| 🧪 **Code sandbox** | Safely runs generated code | Agent Platform code execution |
-| 🪟 **Agent-first UI** | Cards and tables instead of plain text | [A2UI](https://adk.dev/integrations/a2ui/) |
-| 🌐 **Frontend** | A shareable web face | FastAPI proxy on [Cloud Run](https://cloud.google.com/run) |
+| 🧠 **Cross-Session Long-Term Memory** | Remembers user allergies, injuries, dietary restrictions, and fitness preferences across conversations and sessions. | **Vertex AI Memory Bank** (`VertexAiMemoryBankService` + `PreloadMemoryTool`) |
+| 🗄️ **Exercise Catalog & Workout Logging** | Queries exercise movements, filters by target muscle or difficulty, adds custom exercises, and logs completed workout sessions. | **Google Cloud Firestore** (`exercises` and `workout_logs` collections) |
+| 🖼️ **Image Generation** | Generates visual form guides, recovery meals, and milestone badges, saves them as ADK artifacts, and uploads them to public storage. | **Vertex AI Imagen** (`gemini-3.1-flash-lite-image`) |
+| 🎬 **Exercise Video Generation** | Generates instructional exercise motion demonstrations, saves them as ADK artifacts, and uploads MP4 bytes to public storage. | **Vertex AI Omni** (`gemini-omni-flash-preview`) |
+| ☁️ **Media Hosting** | Hosts generated exercise visuals and motion demonstration videos for direct web rendering. | **Google Cloud Storage** |
+| 🧪 **Python Code Execution Sandbox** | Securely executes Python calculations (e.g. 1RM estimations, Karvonen heart rate zones, caloric expenditure) in an isolated container. | **Agent Engine Sandbox Code Executor** (`AgentEngineSandboxCodeExecutor`) |
+| 🪟 **Agent-to-UI Cards (A2UI)** | Formats workout routines and fitness metrics as structured visual cards (`beginRendering` + `surfaceUpdate` v0.8) rather than plain text. | **A2UI Schema Manager** (`a2ui-agent-sdk`) |
+| 🌐 **A2A Chat Frontend** | Custom dark-themed athletic web interface with quick-action prompt pills and real-time A2UI card rendering over the A2A protocol. | **FastAPI Proxy** + Vanilla Web UI |
 
 ---
 
-## 📂 Featured Projects
+## 🛠️ Implemented Agent Tools
 
-A showcase of what workshop participants built with this lab. Entries are added here from the swag and gallery submission form after each event, so the categories below start empty and fill in over time. Browse them for inspiration, or [submit your own](#-contributing) once you've published your project with the `publish-to-github` skill.
+The agent (`app/agent.py`) implements and exposes the following function tools:
 
-<!--
-Add one entry per project, in this format:
-- 🌿 **[Project Name](https://github.com/their-handle/their-repo)**: one-line description of what it does. <br/> <sub>by [@handle](https://github.com/handle)</sub>
-
-Bump the "Projects" badge count at the top when you add one.
--->
-
-### 🛍️ Commerce & Marketplace Agents
-
-### 🍳 Food & Recipe Agents
-
-- 🥫 **[Smart Pantry Recipe Concierge](https://github.com/matthewrose/buildwithgemini-smart-pantry-recipe-concierge)**: Tracks your pantry and recommends recipes grounded in a real recipe corpus. <br/> <sub>by [@matthewrose](https://github.com/matthewrose)</sub>
-
-### ✈️ Travel & Local Agents
-
-- ⛈️ **[SafeStageWX](https://github.com/felix1028/buildwithgemini-safestagewx)**: An agentic mobile app that helps event planners identify weather threats and climate risks for an event given its date and location, providing tailored preparedness timelines from months out down to hourly day-of forecasts. <br/> <sub>by [@felix1028](https://github.com/felix1028)</sub>
-- 🌇 **[Sidewalk & Sun](https://github.com/OlafHaalstra/buildwithgemini-sidewalk-and-sun)**: Recommends sunny or shaded NYC spots from a curated 500-venue corpus, plotted on an interactive map. <br/> <sub>by [@OlafHaalstra](https://github.com/OlafHaalstra)</sub>
-
-### 💪 Health, Fitness & Wellness Agents
-
-- 🏊 **[TriCoach AI](https://github.com/common-aman/buildwithgemini-tricoach-ai)**: A triathlon coach that logs workouts, computes training zones, and generates motivational visuals. <br/> <sub>by [@common-aman](https://github.com/common-aman)</sub>
-
-### 📚 Learning & Knowledge Agents
-
-- 🎤 **[Interview Coach (PrepPal)](https://github.com/VineethBaradi/buildwithgemini-interview-coach)**: A mock-interview coach that runs LLM-driven practice sessions from a Firestore question bank and gives performance feedback. <br/> <sub>by [@VineethBaradi](https://github.com/VineethBaradi)</sub>
-
-### 🎨 Creative & Media Agents
-
-### 🏢 Productivity & Enterprise Agents
-
-- 🔧 **[GitCraft](https://github.com/fpobletemu/buildwithgemini-gitcraft)**: A developer git assistant that inspects your repo and drafts Conventional-Commits-style messages, grounded in a commit-style guide. <br/> <sub>by [@fpobletemu](https://github.com/fpobletemu)</sub>
-- 🖥️ **[IT Helpdesk Agent](https://github.com/NaweedAhmadi/buildwithgemini-it-helpdesk-agent)**: An IT support assistant that answers from a knowledge base and remembers context across sessions, with a ticket dashboard UI. <br/> <sub>by [@NaweedAhmadi](https://github.com/NaweedAhmadi)</sub>
-
-### 🧪 Experimental & Other
-
-- 🃏 **[Poker Agent](https://github.com/jakecho1108/buildwithgemini-poker-agent)**: A poker trainer with a real 800-iteration Monte Carlo equity engine and strategy tips grounded in a poker playbook. <br/> <sub>by [@jakecho1108](https://github.com/jakecho1108)</sub>
+- `list_or_search_exercises(target_muscle, difficulty, category)`: Searches Firestore exercise database.
+- `get_exercise_details(exercise_id)`: Fetches step-by-step instructions, equipment, and target muscles.
+- `log_workout_session(user_name, routine_name, exercises_completed, duration_minutes, notes)`: Saves session logs with timestamps.
+- `get_user_workout_history(user_name, limit)`: Retrieves recent logged workouts and total training minutes.
+- `add_custom_exercise(...)`: Allows users to add custom movements to their catalog.
+- `calculate_one_rep_max(weight_lbs, reps)`: Calculates 1RM and percentage-based training loads via Epley & Brzycki formulas.
+- `calculate_heart_rate_zones(age, resting_hr)`: Computes cardio training Zones 1–5 via Karvonen and Max HR formulas.
+- `estimate_nutrition_and_macros(food_query)`: Provides caloric and macronutrient breakdowns (protein, carbs, fats) for post-workout meals.
+- `check_outdoor_workout_weather(city_name)`: Checks temperature, precipitation, and running conditions via Open-Meteo API.
+- `generate_fitness_visual(prompt, title)`: Generates high-res image visual via `gemini-3.1-flash-lite-image` and uploads to Cloud Storage.
+- `generate_exercise_video(prompt, title)`: Generates short demonstration video via `gemini-omni-flash-preview` and uploads to Cloud Storage.
 
 ---
 
-## 🧠 What's in this Repo
+## 🚀 Running Locally
 
-The `.agents/` folder teaches Antigravity how to build agents on Google Cloud.
+### 1. Prerequisites
+- Python `>=3.11, <3.14`
+- [uv](https://docs.astral.sh/uv/) package manager
+- Google Cloud SDK (`gcloud`) authenticated with Application Default Credentials (`gcloud auth application-default login`)
 
-### Skills
-
-A **skill** is a bundle of instructions that loads automatically when it's relevant, so the agent gets the workflow right in fewer steps instead of rediscovering it each time.
-
-| Skill | What it does |
-| --- | --- |
-| [`pick-your-agent-project`](.agents/skills/pick-your-agent-project/SKILL.md) | Brainstorm your app idea and write a project brief |
-| [`troubleshoot-lab-setup`](.agents/skills/troubleshoot-lab-setup/SKILL.md) | Verify your environment and fix common setup errors |
-| [`memory-bank-setup`](.agents/skills/setup-memory-bank/SKILL.md) | Add cross-session memory to your agent with Vertex AI Memory Bank |
-| [`enable-a2ui`](.agents/skills/enable-a2ui/SKILL.md) | Make your agent reply with rich UI cards (A2UI) in the ADK dev UI |
-| [`build-agent-frontend`](.agents/skills/build-agent-frontend/SKILL.md) | Generate a FastAPI chat frontend and ship it to Cloud Run |
-| [`record-demo`](.agents/skills/record-demo/SKILL.md) | Record a branded demo video of your agent, with an optional AI soundtrack |
-| [`publish-to-github`](.agents/skills/publish-to-github/SKILL.md) | Publish your finished project to your own GitHub and submit it for swag |
-
-### Pre-configured tools (MCP)
-
-[`.agents/mcp_config.json`](.agents/mcp_config.json) wires up two [Model Context Protocol](https://modelcontextprotocol.io/) servers that authenticate with your gcloud credentials, so the agent can look things up instead of guessing:
-
-- **Firebase**: work directly with Firestore and other Firebase services
-- **Google Developer Knowledge**: grounded access to Google's official docs (Cloud, Firebase, ADK, Agent Platform)
-
-### Layout
-
-```text
-.agents/
-├── mcp_config.json    # Firebase + Developer Knowledge MCP servers
-├── rules/             # workspace rules (only deploy when asked)
-└── skills/            # the workshop skills listed above
-```
-
----
-
-## 🧰 Build Your Own
-
-The full, step-by-step walkthrough lives on the **[lab guide](https://cszhu.github.io/build-with-gemini/)**. This is the short version.
-
-**Prerequisites** (the lab workstation comes with all of this pre-installed; you'll need it if you're running on your own machine):
-
-- A **Google Cloud project** with billing enabled
-- **[Antigravity](https://antigravity.google)** (`agy`), the coding agent that loads the skills above
-- **[agents-cli](https://google.github.io/agents-cli/guide/getting-started/)**, built on the [Agent Development Kit (ADK)](https://google.github.io/adk-docs/)
-- Authenticated gcloud: `gcloud auth login` and `gcloud auth application-default login`
-- A personal **GitHub account** for the final publish-and-submit step
-
-**Quickstart:**
-
+### 2. Environment Variables
+Set your Google Cloud project and region:
 ```bash
-git clone https://github.com/cszhu/build-with-gemini
-cd build-with-gemini
-agy
+export GOOGLE_CLOUD_PROJECT="<your-gcp-project-id>"
+export GOOGLE_CLOUD_LOCATION="us-east1"
+export GOOGLE_GENAI_USE_VERTEXAI="true"
 ```
 
-On startup, Antigravity scans the `.agents/` folder and loads the skills and tools above automatically. In the AGY prompt:
-
-```text
-/skills            # see the installed skills
-/mcp               # confirm the firebase + google-developer-knowledge tools are connected
+### 3. Launch the Agent in ADK Web (Dev Playground)
+To test the agent with long-term memory and A2UI card rendering in the ADK web dev environment:
+```bash
+uv run adk web --memory_service_uri=agentengine://<your-memory-bank-id> --host=0.0.0.0 --port=8000
 ```
 
-```text
-Verify my setup.   # runs the troubleshoot-lab-setup skill to check your environment
+### 4. Run the Custom FitPulse Web Frontend
+To run the lightweight FastAPI proxy and custom FitPulse chat UI:
+```bash
+cd frontend
+export AGENT_ENGINE_RESOURCE_NAME="projects/<project-id>/locations/us-east1/reasoningEngines/<engine-id>"
+export AGENT_DIRECTORY="app"
+uv run python main.py
 ```
-
-Then follow the [lab guide](https://cszhu.github.io/build-with-gemini/) to design, build, deploy, and share your agent, start to finish.
 
 ---
 
-## 📚 Resources
+## 📁 Repository Structure
 
-- **[Lab guide](https://cszhu.github.io/build-with-gemini/)**: the step-by-step workshop
-- [Antigravity](https://antigravity.google)
-- [agents-cli](https://google.github.io/agents-cli/guide/getting-started/)
-- [Agent Development Kit (ADK)](https://google.github.io/adk-docs/)
-- [Gemini Enterprise Agent Platform](https://docs.cloud.google.com/gemini-enterprise-agent-platform)
-
----
-
-## 🤝 Contributing
-
-**Built something?** Publish it with the `publish-to-github` skill and submit it through the form it gives you. Submissions get you swag, and standout projects get added to the [Featured Projects](#-featured-projects) gallery above.
-
-**Found a bug?** If you hit a rough edge in a skill or the lab, please [open an issue](https://github.com/cszhu/build-with-gemini/issues).
-
----
-
-## 📄 License
-
-This is not an officially supported Google product and is provided for the Build with Gemini workshop for demonstration purposes only.
+```
+.
+├── app/
+│   ├── agent.py               # Main agent configuration, tools, memory, and A2UI wiring
+│   ├── a2ui_utils.py          # A2UI response parser and renderer callback
+│   └── fast_api_app.py        # Local API server entrypoint
+├── frontend/
+│   ├── main.py                # FastAPI proxy connecting browser to Agent Engine over A2A
+│   ├── requirements.txt       # Frontend proxy dependencies
+│   └── static/
+│       └── index.html         # Custom FitPulse chat UI and A2UI component renderer
+├── agents-cli-manifest.yaml   # Agent manifest configuration
+├── deployment_metadata.json   # Agent Engine runtime and deployment metadata
+├── project_brief.md           # Project architecture and design specification
+└── pyproject.toml             # Python project dependencies and ADK configuration
+```
