@@ -2,6 +2,10 @@
 
 FitPulse is an intelligent, agent-first fitness and nutrition coach built on Google Cloud's Agent Platform and Vertex AI. It helps athletes and fitness enthusiasts discover exercises, calculate strength targets, plan workouts, track training logs, estimate nutritional needs, and generate instructional form visuals and demonstration videos.
 
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="FitPulse Live Agent Demo" width="100%" />
+</p>
+
 ---
 
 ## 🌟 Implemented Features & Google Cloud Integrations
