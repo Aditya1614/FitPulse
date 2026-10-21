@@ -442,8 +442,20 @@ function parseMarkdown(raw) {
   // Italic: *text* or _text_
   s = s.replace(/\*([^*\n]+?)\*/g, "<em>$1</em>");
   s = s.replace(/_([^_\n]+?)_/g, "<em>$1</em>");
-  // Inline code: `code`
-  s = s.replace(/`([^`]+?)`/g, "<code style='background:rgba(255,255,255,0.08);padding:0.15rem 0.35rem;border-radius:4px;font-family:monospace;'>$1</code>");
+  // LaTeX display formulas: $$\text{...}$$ or $$...$$
+  s = s.replace(/\$\$(.+?)\$\$/g, (m, formula) => {
+    let clean = formula
+      .replace(/\\text\{([^}]+)\}/g, "$1")
+      .replace(/\\mathbf\{([^}]+)\}/g, "$1")
+      .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, "$1 / $2")
+      .replace(/\\approx/g, "≈")
+      .replace(/\\times/g, "×")
+      .replace(/\\/g, "");
+    return `<div style='background:rgba(255,255,255,0.06);border-left:3px solid var(--accent);padding:0.4rem 0.8rem;border-radius:4px;margin:0.4rem 0;font-family:monospace;font-size:0.92rem;color:#f1f2f6;'>${clean}</div>`;
+  });
+
+  // Bullets: * item or - item
+  s = s.replace(/^\s*[\*\-]\s+(.*?)$/gm, "<div style='margin-left:0.5rem;padding:0.1rem 0;'>• $1</div>");
 
   // Markdown tables
   s = s.replace(/((?:\|[^\n]+\|\r?\n)+)/g, (match) => {
