@@ -36,7 +36,7 @@ from google.genai import types
 from .a2ui_utils import a2ui_callback
 
 
-MODEL = "gemini-3.8-flash"
+MODEL = "gemini-2.5-flash"
 IMAGE_MODEL = "gemini-3.1-flash-lite-image"
 PROJECT_ID = "qwiklabs-gcp-04-59fb1dbb96b2"
 LOCATION = "us-east1"
