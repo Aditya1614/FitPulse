@@ -3,50 +3,373 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agent</title>
-<!-- Optional: used only to draw A2UI Icon components. If it can't load (offline/
-     corp network), icons fall back to showing their name as text. -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
+<title>FitPulse - AI Fitness & Workout Coach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
 <style>
-  :root { --accent:#1a73e8; --bg:#f6f8fa; --border:#dfe3e8; }
-  * { box-sizing:border-box; }
-  body { margin:0; font-family:system-ui,sans-serif; background:var(--bg); display:flex; flex-direction:column; height:100vh; }
-  header { background:var(--accent); color:#fff; padding:.9rem 1.2rem; font-weight:700; }
-  #log { flex:1; overflow-y:auto; padding:1.2rem; max-width:780px; width:100%; margin:0 auto; }
-  .msg { margin:.6rem 0; }
-  .msg.user { text-align:right; }
-  .bubble { display:inline-block; padding:.6rem .9rem; border-radius:12px; background:#fff; border:1px solid var(--border); text-align:left; max-width:90%; white-space:pre-wrap; }
-  .msg.user .bubble { background:var(--accent); color:#fff; border:none; }
-  /* When the reply is an A2UI card, drop the bubble chrome so the card stands alone. */
-  .bubble.rich { background:transparent; border:none; padding:0; max-width:100%; white-space:normal; }
-  form { display:flex; gap:.5rem; padding:1rem; border-top:1px solid var(--border); background:#fff; }
-  input { flex:1; padding:.7rem; border:1px solid var(--border); border-radius:8px; font-size:1rem; }
-  button { padding:.7rem 1.1rem; border:none; border-radius:8px; background:var(--accent); color:#fff; font-weight:600; cursor:pointer; }
+  :root {
+    --accent: #ff4757;
+    --accent-glow: rgba(255, 71, 87, 0.25);
+    --accent-dark: #e84118;
+    --bg-dark: #0f111a;
+    --bg-card: #181b2a;
+    --bg-input: #23273c;
+    --border: #2e344d;
+    --text-primary: #f1f2f6;
+    --text-secondary: #a4b0be;
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  header {
+    background: rgba(24, 27, 42, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0.85rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .brand-logo {
+    background: linear-gradient(135deg, var(--accent), #ff6b81);
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    box-shadow: 0 4px 12px var(--accent-glow);
+  }
+  .brand-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(90deg, #fff, #dfe4ea);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .brand-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff6b81;
+    border: 1px solid rgba(255, 71, 87, 0.3);
+    padding: 0.2rem 0.55rem;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
 
-  /* --- A2UI component styles (Card, Column, Row, Text, Divider, List, Image, Icon) --- */
-  .a2card { border:1px solid var(--border); border-radius:12px; padding:1rem; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.06); max-width:100%; }
-  .a2card + .a2card, .a2col > .a2card { margin-top:.6rem; }
-  .a2col { display:flex; flex-direction:column; gap:.4rem; }
-  .a2row { display:flex; flex-direction:row; gap:.6rem; align-items:center; flex-wrap:wrap; }
-  .a2row.between { justify-content:space-between; }
-  .a2text { margin:0; line-height:1.4; }
-  .a2text.a2-h1 { font-size:1.5rem; font-weight:700; }
-  .a2text.a2-h2 { font-size:1.25rem; font-weight:700; }
-  .a2text.a2-h3 { font-size:1.1rem; font-weight:600; }
-  .a2text.a2-h4 { font-size:1rem; font-weight:600; }
-  .a2text.a2-caption { font-size:.85rem; color:#666; }
-  .a2divider { border:none; border-top:1px solid var(--border); margin:.4rem 0; width:100%; }
-  .a2img { max-width:100%; border-radius:8px; display:block; }
-  .material-symbols-outlined { font-family:'Material Symbols Outlined'; font-size:1.25rem; line-height:1; vertical-align:middle; color:var(--accent); }
+  #main-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 860px;
+    width: 100%;
+    margin: 0 auto;
+    overflow: hidden;
+    height: 100%;
+  }
+
+  #log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    scroll-behavior: smooth;
+  }
+  #log::-webkit-scrollbar {
+    width: 6px;
+  }
+  #log::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+  }
+
+  /* Dialogue / Message Bubbles */
+  .msg-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    animation: fadeIn 0.25s ease-out;
+  }
+  .msg-row.user {
+    flex-direction: row-reverse;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .avatar.bot {
+    background: linear-gradient(135deg, var(--accent), #ff6b81);
+    color: #fff;
+    box-shadow: 0 2px 8px var(--accent-glow);
+  }
+  .avatar.user {
+    background: #3742fa;
+    color: #fff;
+  }
+
+  .bubble-wrap {
+    max-width: 85%;
+    display: flex;
+    flex-direction: column;
+  }
+  .bubble {
+    padding: 0.85rem 1.1rem;
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    line-height: 1.55;
+    font-size: 0.95rem;
+    white-space: pre-wrap;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+  .msg-row.user .bubble {
+    background: linear-gradient(135deg, var(--accent), #e84118);
+    color: #fff;
+    border: none;
+    border-top-right-radius: 4px;
+    box-shadow: 0 4px 14px var(--accent-glow);
+  }
+  .msg-row.agent .bubble {
+    border-top-left-radius: 4px;
+  }
+  .bubble.rich {
+    background: transparent;
+    border: none;
+    padding: 0;
+    max-width: 100%;
+    box-shadow: none;
+    white-space: normal;
+  }
+
+  /* Suggestions Bar */
+  .suggestions-wrapper {
+    padding: 0.5rem 1rem 0.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .suggestions-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .suggestions-row {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+  .suggestions-row::-webkit-scrollbar {
+    height: 4px;
+  }
+  .suggestion-pill {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.45rem 0.85rem;
+    border-radius: 20px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .suggestion-pill:hover {
+    background: var(--bg-input);
+    color: #fff;
+    border-color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(255, 71, 87, 0.2);
+  }
+  .suggestion-pill .material-symbols-outlined {
+    font-size: 1rem;
+    color: var(--accent);
+  }
+
+  /* Chat Input Form */
+  form {
+    display: flex;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem 1.1rem;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    align-items: center;
+  }
+  .input-box {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  input::placeholder {
+    color: #57606f;
+  }
+  button {
+    padding: 0.8rem 1.3rem;
+    border: none;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--accent), #ff6b81);
+    color: #fff;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 12px var(--accent-glow);
+  }
+  button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(255, 71, 87, 0.35);
+  }
+  button:active {
+    transform: translateY(1px);
+  }
+
+  /* --- A2UI Card Theming (Dark Mode & FitPulse Aesthetics) --- */
+  .a2card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.2rem;
+    background: linear-gradient(145deg, #1c2033, #151827);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    max-width: 100%;
+  }
+  .a2card + .a2card, .a2col > .a2card { margin-top: 0.75rem; }
+  .a2col { display: flex; flex-direction: column; gap: 0.5rem; }
+  .a2row { display: flex; flex-direction: row; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+  .a2row.between { justify-content: space-between; }
+  .a2text { margin: 0; line-height: 1.5; color: var(--text-primary); }
+  .a2text.a2-h1 { font-size: 1.4rem; font-weight: 800; color: #fff; border-bottom: 2px solid var(--accent); padding-bottom: 0.3rem; margin-bottom: 0.4rem; }
+  .a2text.a2-h2 { font-size: 1.2rem; font-weight: 700; color: #ff6b81; margin-top: 0.3rem; }
+  .a2text.a2-h3 { font-size: 1.05rem; font-weight: 600; color: #ced6e0; }
+  .a2text.a2-h4 { font-size: 0.95rem; font-weight: 600; color: #a4b0be; }
+  .a2text.a2-caption { font-size: 0.82rem; color: #747d8c; }
+  .a2divider { border: none; border-top: 1px solid var(--border); margin: 0.6rem 0; width: 100%; }
+  .a2img { max-width: 100%; border-radius: var(--radius-md); display: block; border: 1px solid var(--border); }
+  .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-size: 1.25rem; line-height: 1; vertical-align: middle; color: var(--accent); }
 </style>
 </head>
 <body>
-<header>Your Agent</header>
-<div id="log"></div>
-<form id="form">
-  <input id="input" placeholder="Ask something…" autocomplete="off" autofocus>
-  <button>Send</button>
-</form>
+<header>
+  <div class="brand">
+    <div class="brand-logo">
+      <span class="material-symbols-outlined" style="color:#fff; font-size:1.3rem;">fitness_center</span>
+    </div>
+    <div>
+      <div class="brand-title">FitPulse</div>
+    </div>
+  </div>
+  <div class="brand-badge">AI Workout Coach</div>
+</header>
+
+<div id="main-container">
+  <div id="log">
+    <!-- Welcome card -->
+    <div class="msg-row agent">
+      <div class="avatar bot">FP</div>
+      <div class="bubble-wrap">
+        <div class="bubble">
+          👋 Welcome to <strong>FitPulse</strong>! I am your AI fitness and nutrition coach. I can help you create customized workout routines, track exercises, calculate your 1RM, estimate calories, and visualize your training.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clickable Prompt Suggestions -->
+  <div class="suggestions-wrapper">
+    <div class="suggestions-label">
+      <span class="material-symbols-outlined">bolt</span> Quick Workouts & Calculations
+    </div>
+    <div class="suggestions-row">
+      <div class="suggestion-pill" onclick="sendQuickPrompt('Give me a 3-day arm hypertrophy workout plan (biceps & triceps)')">
+        <span class="material-symbols-outlined">exercise</span> Arm Workout Routine
+      </div>
+      <div class="suggestion-pill" onclick="sendQuickPrompt('Calculate my 1-rep max (1RM) for Bench Press at 185 lbs for 6 reps')">
+        <span class="material-symbols-outlined">calculate</span> 1RM Calculator
+      </div>
+      <div class="suggestion-pill" onclick="sendQuickPrompt('Estimate the calories and macros for 200g grilled chicken breast and a cup of brown rice')">
+        <span class="material-symbols-outlined">restaurant</span> Post-Workout Nutrition
+      </div>
+    </div>
+  </div>
+
+  <form id="form">
+    <div class="input-box">
+      <input id="input" placeholder="Ask FitPulse for a routine, exercise form, or nutrition advice…" autocomplete="off" autofocus>
+    </div>
+    <button>
+      <span>Send</span>
+      <span class="material-symbols-outlined" style="color:#fff; font-size:1.1rem;">send</span>
+    </button>
+  </form>
+</div>
 
 <script>
 const log = document.getElementById("log");
@@ -55,21 +378,30 @@ const input = document.getElementById("input");
 
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
-function bubble(who) {
-  const m = el("div", "msg " + who);
+function appendMessage(who, textContent = null) {
+  const row = el("div", "msg-row " + who);
+  const avatar = el("div", "avatar " + (who === "user" ? "user" : "bot"), who === "user" ? "YOU" : "FP");
+  const wrap = el("div", "bubble-wrap");
   const b = el("div", "bubble");
-  m.appendChild(b); log.appendChild(m); log.scrollTop = log.scrollHeight;
+  if (textContent) b.textContent = textContent;
+  
+  row.appendChild(avatar);
+  wrap.appendChild(b);
+  row.appendChild(wrap);
+  log.appendChild(row);
+  log.scrollTop = log.scrollHeight;
   return b;
+}
+
+function sendQuickPrompt(promptText) {
+  input.value = promptText;
+  form.dispatchEvent(new Event("submit"));
 }
 
 /* ----------------------------------------------------------------------------
  * A2UI mini-renderer (v0.8 Basic Catalog subset).
  * Renders Card / Column / Row / Text / Divider / List / Image / Icon.
- * Anything else falls back to plain text (see renderReply). All text goes in via
- * textContent and image URLs are validated, so agent output can't inject HTML.
  * -------------------------------------------------------------------------- */
-
-// A "bound value" is usually {literalString: "..."}; we only support literals.
 function boundStr(v) {
   if (v == null) return "";
   if (typeof v === "string") return v;
@@ -77,7 +409,6 @@ function boundStr(v) {
   return "";
 }
 
-// child ids of a component's props: single `child` and/or `children.explicitList`.
 function childIds(props) {
   const ids = [];
   if (props && typeof props.child === "string") ids.push(props.child);
@@ -86,11 +417,10 @@ function childIds(props) {
   return ids;
 }
 
-// A2UI icon names are camelCase (locationOn); Material Symbols wants snake_case.
 function iconName(n) { return String(n || "").replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/\s+/g, "_").toLowerCase(); }
 
 function buildNode(id, comps, seen) {
-  if (!id || seen.has(id)) return null;   // missing / cycle guard
+  if (!id || seen.has(id)) return null;
   seen.add(id);
   const spec = comps[id];
   if (!spec || typeof spec !== "object") return null;
@@ -123,19 +453,17 @@ function buildNode(id, comps, seen) {
       return el("hr", "a2divider");
     case "Image": {
       const src = boundStr(props.url || props.src);
-      if (!/^https?:\/\//i.test(src)) return null;   // only allow safe URLs
+      if (!/^https?:\/\//i.test(src)) return null;
       const img = el("img", "a2img"); img.src = src; img.alt = boundStr(props.alt) || ""; return img;
     }
     case "Icon": {
       const s = el("span", "material-symbols-outlined"); s.textContent = iconName(boundStr(props.name) || props.name); return s;
     }
     default:
-      return null;   // unknown component -> skipped (text fallback covers content)
+      return null;
   }
 }
 
-// Render one or more A2UI messages (beginRendering + surfaceUpdate) into `container`.
-// Returns true if anything was drawn.
 function renderSurface(messages, container) {
   const comps = {};
   const roots = [];
@@ -145,7 +473,7 @@ function renderSurface(messages, container) {
     if (su && Array.isArray(su.components)) for (const c of su.components) if (c && c.id && c.component) comps[c.id] = c.component;
   }
   let rootIds = roots.filter(r => comps[r]);
-  if (rootIds.length === 0) {   // no valid root given -> infer un-referenced components
+  if (rootIds.length === 0) {
     const referenced = new Set();
     for (const id in comps) { const spec = comps[id]; childIds(spec[Object.keys(spec)[0]] || {}).forEach(c => referenced.add(c)); }
     rootIds = Object.keys(comps).filter(id => !referenced.has(id));
@@ -155,7 +483,6 @@ function renderSurface(messages, container) {
   return drew;
 }
 
-// Fallback: pull every Text value out of the messages as plain text.
 function flattenText(messages) {
   const out = [];
   for (const m of messages) {
@@ -166,7 +493,7 @@ function flattenText(messages) {
 }
 
 function renderReply(b, parts) {
-  b.textContent = "";   // clear the "…" placeholder
+  b.textContent = "";
   const texts = parts.filter(p => p && (p.kind === "text" || (!p.kind && p.text))).map(p => p.text || "");
   const a2ui = parts.filter(p => p && p.kind === "a2ui" && p.data).map(p => p.data);
 
@@ -181,19 +508,15 @@ function renderReply(b, parts) {
   log.scrollTop = log.scrollHeight;
 }
 
-// The proxy returns { parts: [{kind:"text",text} | {kind:"a2ui",data}] }.
 form.addEventListener("submit", async (ev) => {
   ev.preventDefault();
   const text = input.value.trim();
   if (!text) return;
-  bubble("user").textContent = text;
+  appendMessage("user", text);
   input.value = "";
-  const b = bubble("agent"); b.textContent = "…";
+  const b = appendMessage("agent", "Thinking & calculating…");
   try {
     const res = await fetch("/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text }) });
-    // Read as text first, then parse. If the proxy ever returns a non-JSON error
-    // page (e.g. a plain "Internal Server Error"), show that body instead of a
-    // cryptic "Unexpected token" JSON error.
     const raw = await res.text();
     let data;
     try { data = JSON.parse(raw); }
