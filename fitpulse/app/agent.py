@@ -507,27 +507,23 @@ instruction = schema_manager.generate_system_prompt(
         "build tailored workout routines, analyze complex training metrics with Python sandbox code execution, "
         "and track/log their training sessions using your tools."
     ),
-    workflow_description="Analyze the user request, call any appropriate tools, and return structured UI when appropriate.",
+    workflow_description=(
+        "Always call appropriate tools first to fetch exercises, weather, or metrics if needed. "
+        "Then, ALWAYS format your final assistant response as an A2UI JSON array so it renders as a visual Card in the UI."
+    ),
     ui_description=(
-        "Keep every surface tiny and flat: ONE Card > ONE Column > a few Text rows. "
-        "Never nest a Card inside a Card. "
-        "Use ONLY these components: Card, Column, Row, Text, and Image. Do not use "
-        "Table or Heading (unsupported), or Buttons, actions, or forms (they do "
-        "nothing in adk web). "
-        "You may include one Image component, but only when you have a public https "
-        "URL for the image (for example the URL an image tool returns after uploading "
-        "to a public bucket). Set the Image url to that exact https link, for example "
-        "{\"Image\": {\"url\": {\"literalString\": \"https://...\"}}}. Never point an "
-        "Image at a bare filename, an artifact name, or a non-http(s) path. If you do "
-        "not have a public URL, add a short Text line noting the image instead. "
-        "No markdown in text; use the usageHint property ('h1', 'h2', 'body') for "
-        "headings and emphasis. "
-        "Output ONLY the raw A2UI JSON array — no prose, and never wrap it in "
-        "<a2a_datapart_json> tags or 'kind'/'data'/'metadata' objects."
+        "ALWAYS return your entire response as a valid A2UI JSON array. "
+        "Structure: beginRendering followed by surfaceUpdate with ONE Card > ONE Column > a series of Text rows. "
+        "Keep the surface flat and concise. "
+        "Use ONLY these components: Card, Column, Row, Text, and Image. Do not use Table, Heading, Buttons, or forms. "
+        "For headings, use Text with usageHint: 'h1' or 'h2'. For body details, exercises, sets, reps, and tips, use Text with usageHint: 'body'. "
+        "If an image was generated with a public https URL, include an Image component with url: {'literalString': '<https_url>'}. "
+        "Output ONLY the raw A2UI JSON array starting with '[' and ending with ']'. Do NOT add any markdown formatting (no ```json code blocks), no introductory or concluding conversational prose outside the JSON."
     ),
     include_schema=True,
     include_examples=True,
 )
+
 
 
 root_agent = Agent(
