@@ -425,15 +425,54 @@ function parseMarkdown(raw) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+
+  // Headers (e.g. #### Title, ### Title)
+  s = s.replace(/^#{4,6}\s*(.*?)$/gm, "<div style='font-size:0.92rem;font-weight:700;color:var(--accent);margin:0.5rem 0 0.2rem;'>$1</div>");
+  s = s.replace(/^#{3}\s*(.*?)$/gm, "<div style='font-size:1.02rem;font-weight:700;color:#fff;margin:0.6rem 0 0.25rem;'>$1</div>");
+  s = s.replace(/^#{1,2}\s*(.*?)$/gm, "<div style='font-size:1.15rem;font-weight:800;color:#fff;margin:0.7rem 0 0.3rem;'>$1</div>");
+
+  // Horizontal rules
+  s = s.replace(/^---$/gm, "<hr style='border:none;border-top:1px solid rgba(255,255,255,0.08);margin:0.6rem 0;'/>");
+
+  // Bold-italic: ***text***
+  s = s.replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>");
   // Bold: **text** or __text__
   s = s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   s = s.replace(/__(.+?)__/g, "<strong>$1</strong>");
   // Italic: *text* or _text_
-  s = s.replace(/\*([^*]+?)\*/g, "<em>$1</em>");
-  s = s.replace(/_([^_]+?)_/g, "<em>$1</em>");
+  s = s.replace(/\*([^*\n]+?)\*/g, "<em>$1</em>");
+  s = s.replace(/_([^_\n]+?)_/g, "<em>$1</em>");
   // Inline code: `code`
   s = s.replace(/`([^`]+?)`/g, "<code style='background:rgba(255,255,255,0.08);padding:0.15rem 0.35rem;border-radius:4px;font-family:monospace;'>$1</code>");
-  // Newlines to <br/>
+
+  // Markdown tables
+  s = s.replace(/((?:\|[^\n]+\|\r?\n)+)/g, (match) => {
+    const lines = match.trim().split("\n").map(l => l.trim()).filter(Boolean);
+    if (lines.length < 2) return match;
+    let html = "<div style='overflow-x:auto;margin:0.6rem 0;'><table style='width:100%;border-collapse:collapse;font-size:0.85rem;'>";
+    let isHeader = true;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (/^\|(?:\s*:?-+:?\s*\|)+$/.test(line)) {
+        isHeader = false;
+        continue;
+      }
+      const cells = line.split("|").slice(1, -1).map(c => c.trim());
+      html += "<tr style='border-bottom:1px solid rgba(255,255,255,0.08);'>";
+      for (const cell of cells) {
+        if (isHeader && i === 0) {
+          html += `<th style='padding:0.4rem 0.6rem;text-align:left;background:rgba(255,255,255,0.05);color:var(--accent);font-weight:700;'>${cell}</th>`;
+        } else {
+          html += `<td style='padding:0.4rem 0.6rem;color:var(--text-primary);'>${cell}</td>`;
+        }
+      }
+      html += "</tr>";
+    }
+    html += "</table></div>";
+    return html;
+  });
+
+  // Remaining newlines to <br/>
   s = s.replace(/\n/g, "<br/>");
   return s;
 }

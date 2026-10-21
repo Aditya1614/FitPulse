@@ -127,6 +127,51 @@ def _extract_a2ui_messages(text: str) -> list[dict]:
     return messages
 
 
+def _clean_markdown_text(text: str) -> str:
+    """Remove Markdown syntax (headings, bold, bullets) from A2UI Text strings."""
+    if not text:
+        return ""
+    # Strip leading markdown headings: ### Title -> Title
+    s = re.sub(r"^\s*#{1,6}\s*", "", text, flags=re.MULTILINE)
+    # Strip bold-italic: ***text*** -> text
+    s = re.sub(r"\*\*\*(.*?)\*\*\*", r"\1", s)
+    # Strip bold: **text** -> text or __text__ -> text
+    s = re.sub(r"\*\*(.*?)\*\*", r"\1", s)
+    s = re.sub(r"__(.*?)__", r"\1", s)
+    # Strip italic: *text* -> text or _text_ -> text
+    s = re.sub(r"\*([^*\n]+?)\*", r"\1", s)
+    s = re.sub(r"_([^_\n]+?)_", r"\1", s)
+    # Turn markdown bullet points (* or -) into bullet character •
+    s = re.sub(r"^\s*[\*\-]\s+", "• ", s, flags=re.MULTILINE)
+    # Strip backticks
+    s = s.replace("`", "")
+    return s.strip()
+
+
+def _sanitize_text_components(messages: list[dict]) -> None:
+    """Clean markdown artifacts (#, **, * bullets) from Text components in place."""
+    for m in messages:
+        surface = m.get("surfaceUpdate")
+        if not isinstance(surface, dict):
+            continue
+        for c in surface.get("components") or []:
+            if not isinstance(c, dict):
+                continue
+            comp = c.get("component")
+            if not isinstance(comp, dict) or "Text" not in comp:
+                continue
+            txt = comp.get("Text")
+            if not isinstance(txt, dict):
+                continue
+            val = txt.get("text")
+            if isinstance(val, dict) and "literalString" in val:
+                raw = val.get("literalString")
+                if isinstance(raw, str):
+                    val["literalString"] = _clean_markdown_text(raw)
+            elif isinstance(val, str):
+                txt["text"] = _clean_markdown_text(val)
+
+
 def _sanitize_image_components(messages: list[dict]) -> None:
     """Replace un-fetchable <Image> components with a short <Text> note, in place.
 
@@ -239,6 +284,9 @@ def a2ui_callback(
 
         # Turn un-fetchable <Image> URLs into a text note (no broken-image icons).
         _sanitize_image_components(messages)
+
+        # Strip Markdown syntax (#, **, *, bullets) from A2UI Text components so they render cleanly.
+        _sanitize_text_components(messages)
 
         if not _surface_is_renderable(messages):
             # We recognized A2UI but couldn't recover a renderable surface — the
