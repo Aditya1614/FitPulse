@@ -508,21 +508,26 @@ instruction = schema_manager.generate_system_prompt(
         "and track/log their training sessions using your tools."
     ),
     workflow_description=(
-        "Always call appropriate tools first to fetch exercises, weather, or metrics if needed. "
-        "Then, ALWAYS format your final assistant response as an A2UI JSON array so it renders as a visual Card in the UI."
+        "Analyze the user request, call any appropriate tools, and return structured UI. "
+        "When responding, emit an A2UI JSON array containing exactly two messages: beginRendering followed by surfaceUpdate."
     ),
     ui_description=(
-        "ALWAYS return your entire response as a valid A2UI JSON array. "
-        "Structure: beginRendering followed by surfaceUpdate with ONE Card > ONE Column > a series of Text rows. "
-        "Keep the surface flat and concise. "
-        "Use ONLY these components: Card, Column, Row, Text, and Image. Do not use Table, Heading, Buttons, or forms. "
-        "For headings, use Text with usageHint: 'h1' or 'h2'. For body details, exercises, sets, reps, and tips, use Text with usageHint: 'body'. "
-        "If an image was generated with a public https URL, include an Image component with url: {'literalString': '<https_url>'}. "
-        "Output ONLY the raw A2UI JSON array starting with '[' and ending with ']'. Do NOT add any markdown formatting (no ```json code blocks), no introductory or concluding conversational prose outside the JSON."
+        "The A2UI response MUST be a JSON array containing two message objects: "
+        "[{\"beginRendering\": {\"surfaceId\": \"default\", \"root\": \"card_1\"}}, "
+        "{\"surfaceUpdate\": {\"surfaceId\": \"default\", \"components\": [...]}}]. "
+        "Inside surfaceUpdate.components: "
+        "- First component MUST be {\"id\": \"card_1\", \"component\": {\"Card\": {\"child\": \"col_1\"}}}. "
+        "- Second component MUST be {\"id\": \"col_1\", \"component\": {\"Column\": {\"children\": {\"explicitList\": [\"text_1\", \"text_2\", ...]}}}}. "
+        "- Followed by the Text components referenced in explicitList. "
+        "Keep surfaces small and flat. Use ONLY Card, Column, Row, Text, and Image. "
+        "Never omit the beginRendering and surfaceUpdate wrapper objects. "
+        "Output ONLY the raw A2UI JSON array starting with '[' and ending with ']'. "
+        "No conversational prose outside the JSON."
     ),
     include_schema=True,
     include_examples=True,
 )
+
 
 
 
