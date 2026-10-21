@@ -38,6 +38,7 @@ from .a2ui_utils import a2ui_callback
 
 MODEL = "gemini-2.5-flash"
 IMAGE_MODEL = "gemini-3.1-flash-lite-image"
+VIDEO_MODEL = "gemini-omni-flash-preview"
 PROJECT_ID = "qwiklabs-gcp-04-59fb1dbb96b2"
 LOCATION = "us-east1"
 BUCKET_NAME = "fitpulse-media-rselow"
@@ -488,6 +489,77 @@ def generate_fitness_visual(
         return {"error": f"Image generation failed: {str(e)}"}
 
 
+def generate_exercise_video(
+    prompt: str,
+    title: str,
+    tool_context: Optional[ToolContext] = None,
+) -> Dict[str, Any]:
+    """Generate a short instructional fitness video demonstration (e.g. proper squat technique, dumbbell curl form, kettlebell swing animation) using Google's Omni model (gemini-omni-flash-preview) in the global region.
+
+    Saves the video as an ADK artifact for the local playground Artifacts panel and uploads the video bytes to public Cloud Storage returning its public https URL.
+
+    Args:
+        prompt: Detailed visual prompt describing the exercise motion, camera angle, trainer form, and gym environment.
+        title: Short title/subject for the exercise video (e.g. 'Barbell Squat Form Video', 'Bicep Curl Technique').
+        tool_context: ToolContext injected automatically by ADK runtime for artifact handling.
+
+    Returns:
+        Dictionary containing the public video URL, artifact filename, and status.
+    """
+    try:
+        import base64
+
+        # Generate video using gemini-omni-flash-preview on Vertex AI (global location)
+        interaction = genai_client.interactions.create(
+            model=VIDEO_MODEL,
+            input=f"Instructional fitness exercise video demonstration, smooth motion, professional gym setting: {prompt}",
+        )
+
+        video_bytes = None
+        mime_type = "video/mp4"
+
+        # Check for output_video or candidate parts
+        if hasattr(interaction, "output_video") and interaction.output_video:
+            if hasattr(interaction.output_video, "data") and interaction.output_video.data:
+                video_bytes = base64.b64decode(interaction.output_video.data)
+            elif isinstance(interaction.output_video, (bytes, bytearray)):
+                video_bytes = bytes(interaction.output_video)
+        elif hasattr(interaction, "candidates") and interaction.candidates:
+            for part in interaction.candidates[0].content.parts:
+                if part.inline_data:
+                    video_bytes = part.inline_data.data
+                    mime_type = part.inline_data.mime_type or "video/mp4"
+                    break
+
+        if not video_bytes:
+            return {"error": "Failed to generate video bytes from Omni model response."}
+
+        slug = re.sub(r"[^a-zA-Z0-9_-]", "_", title.lower().strip()) or "exercise_video"
+        unique_suffix = uuid.uuid4().hex[:6]
+        filename = f"{slug}_{unique_suffix}.mp4"
+
+        # 1. Save as ADK artifact so it appears in Playground's artifacts panel
+        if tool_context is not None:
+            tool_context.save_artifact(filename, video_bytes)
+
+        # 2. Upload video bytes to public Cloud Storage bucket
+        blob = storage_bucket.blob(filename)
+        blob.upload_from_string(video_bytes, content_type=mime_type)
+        public_url = f"https://storage.googleapis.com/{BUCKET_NAME}/{filename}"
+
+        return {
+            "status": "success",
+            "title": title,
+            "artifact_filename": filename,
+            "public_video_url": public_url,
+            "mime_type": mime_type,
+            "message": f"Successfully generated and published exercise video for '{title}'.",
+        }
+
+    except Exception as e:
+        return {"error": f"Video generation failed: {str(e)}"}
+
+
 schema_manager = A2uiSchemaManager(
     version="0.8",
     catalogs=[BasicCatalog.get_config("0.8")],
@@ -503,7 +575,7 @@ instruction = schema_manager.generate_system_prompt(
         "memories and ensure no allergens are ever suggested. "
         "You also help users discover exercises, calculate strength targets (1RM), "
         "compute cardiovascular heart rate zones, check outdoor running weather conditions, "
-        "estimate nutrition & macronutrients for recovery meals, generate illustrative form/meal visuals, "
+        "estimate nutrition & macronutrients for recovery meals, generate illustrative form/meal visuals and exercise demonstration videos, "
         "build tailored workout routines, analyze complex training metrics with Python sandbox code execution, "
         "and track/log their training sessions using your tools."
     ),
@@ -551,6 +623,7 @@ root_agent = Agent(
         estimate_nutrition_and_macros,
         check_outdoor_workout_weather,
         generate_fitness_visual,
+        generate_exercise_video,
     ],
     after_model_callback=a2ui_callback,
     after_agent_callback=generate_memories_callback,
