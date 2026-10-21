@@ -419,6 +419,25 @@ function childIds(props) {
 
 function iconName(n) { return String(n || "").replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/\s+/g, "_").toLowerCase(); }
 
+function parseMarkdown(raw) {
+  if (!raw) return "";
+  let s = String(raw)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  // Bold: **text** or __text__
+  s = s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  s = s.replace(/__(.+?)__/g, "<strong>$1</strong>");
+  // Italic: *text* or _text_
+  s = s.replace(/\*([^*]+?)\*/g, "<em>$1</em>");
+  s = s.replace(/_([^_]+?)_/g, "<em>$1</em>");
+  // Inline code: `code`
+  s = s.replace(/`([^`]+?)`/g, "<code style='background:rgba(255,255,255,0.08);padding:0.15rem 0.35rem;border-radius:4px;font-family:monospace;'>$1</code>");
+  // Newlines to <br/>
+  s = s.replace(/\n/g, "<br/>");
+  return s;
+}
+
 function buildNode(id, comps, seen) {
   if (!id || seen.has(id)) return null;
   seen.add(id);
@@ -446,7 +465,8 @@ function buildNode(id, comps, seen) {
       const hint = String(props.usageHint || "body").toLowerCase();
       if (["h1", "h2", "h3", "h4", "h5", "h6"].includes(hint)) t.classList.add("a2-" + hint);
       else if (hint === "caption") t.classList.add("a2-caption");
-      t.textContent = boundStr(props.text);
+      const rawText = boundStr(props.text);
+      t.innerHTML = parseMarkdown(rawText);
       return t;
     }
     case "Divider":
@@ -498,11 +518,19 @@ function renderReply(b, parts) {
   const a2ui = parts.filter(p => p && p.kind === "a2ui" && p.data).map(p => p.data);
 
   const textStr = texts.join("\n").trim();
-  if (textStr) b.appendChild(el("div", null, textStr));
+  if (textStr) {
+    const textNode = el("div");
+    textNode.innerHTML = parseMarkdown(textStr);
+    b.appendChild(textNode);
+  }
 
   if (a2ui.length) {
     b.classList.add("rich");
-    if (!renderSurface(a2ui, b)) b.appendChild(el("div", null, flattenText(a2ui) || "(no card content)"));
+    if (!renderSurface(a2ui, b)) {
+      const fallbackNode = el("div");
+      fallbackNode.innerHTML = parseMarkdown(flattenText(a2ui) || "(no card content)");
+      b.appendChild(fallbackNode);
+    }
   }
   if (!b.childNodes.length) b.textContent = "(no response)";
   log.scrollTop = log.scrollHeight;
